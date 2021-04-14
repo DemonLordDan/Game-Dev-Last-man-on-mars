@@ -15,9 +15,18 @@ SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIRECTORY})
 add_subdirectory("lib/sfml")
 set(SFML_INCS "lib/sfml/include")
 link_directories("${CMAKE_BINARY_DIR}/lib/sfml/lib")
+add_custom_target(copy_resources ALL COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${PROJECT_SOURCE_DIR}/res"
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>/res
+)
 
-#### Practical 1 ####
+#### Last Man On Mars####
 file(GLOB_RECURSE SOURCES LMOM_Game/*.cpp LMOM_Game/*.h)
 add_executable(LMOM_Game ${SOURCES})
 target_include_directories(LMOM_Game PRIVATE ${SFML_INCS})
 target_link_libraries(LMOM_Game sfml-graphics)
+set_target_properties(LMOM_Game 
+    PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(Configuration)
+)
+add_dependencies(LMOM_Game copy_resources)
