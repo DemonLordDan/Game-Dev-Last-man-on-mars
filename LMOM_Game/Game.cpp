@@ -12,6 +12,19 @@ void Game::initWindow()
 	this->videoMode.width = 800;
 
 	this->window = new sf::RenderWindow(this->videoMode, "Last Man on Mars", sf::Style::Titlebar | sf::Style::Close);
+
+	this->window->setFramerateLimit(144);
+}
+
+void Game::initEnemies()
+{
+	// Initialize enemy properties
+	this->enemy.setPosition(10.f, 10.f);
+	this->enemy.setSize(sf::Vector2f(50.f, 50.f));
+	this->enemy.setScale(sf::Vector2f(0.5f, 0.5f));
+	this->enemy.setFillColor(sf::Color::Red);
+	//this->enemy.setOutlineColor(sf::Color::White);
+	//this->enemy.setOutlineThickness(2.f);
 }
 
 // Constructors / Deconstructors
@@ -19,6 +32,7 @@ Game::Game()
 {
 	this->initVariables();
 	this->initWindow();
+	this->initEnemies();
 }
 
 Game::~Game()
@@ -56,6 +70,14 @@ void Game::pollEvents()
 void Game::update()
 {
 	this->pollEvents();
+
+	// Update mouse position
+	// Relative to the screen
+	//std::cout << "Mouse pos: " << sf::Mouse::getPosition().x << " " << sf::Mouse::getPosition().y << "\n";
+	// Relative to the window
+	//std::cout << "Mouse pos: " 
+		//<< sf::Mouse::getPosition(*this->window).x << " " 
+		//<< sf::Mouse::getPosition(*this->window).y << "\n";
 }
 
 void Game::render()
@@ -68,9 +90,10 @@ void Game::render()
 	*/
 
 	// Clear the previous frame
-	this->window->clear(sf::Color(255, 0, 0, 255));
+	this->window->clear();
 
 	// Draw game objects
+	this->window->draw(this->enemy);
 
 	// Display
 	this->window->display();
