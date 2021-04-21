@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
+#include<ctime>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -21,7 +23,18 @@ private:
 	sf::VideoMode videoMode;
 	sf::Event ev;
 
+	// Mouse Positions
+	sf::Vector2i mousePosWindow;
+	sf::Vector2f mousePosView;
+
+	// Game Logic
+	int points;
+	float enemySpawnTimer;
+	float enemySpawnTimerMax;
+	int maxEnemies;
+
 	// Game Objects
+	std::vector<sf::RectangleShape> enemies;
 	sf::RectangleShape enemy;
 
 	// Private Functions
@@ -38,7 +51,14 @@ public:
 	const bool running() const;
 
 	// Functions
+	void spawnEnemy();
+
 	void pollEvents();
+	void updateMousePositions();
+
+	void updateEnemies();
 	void update();
+
+	void renderEnemies();
 	void render();
 };

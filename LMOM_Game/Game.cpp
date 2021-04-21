@@ -4,6 +4,12 @@
 void Game::initVariables()
 {
 	this->window = nullptr;
+
+	// Game Logic
+	this->points = 0;
+	this->enemySpawnTimerMax = 10.f;
+	this->enemySpawnTimer = this->enemySpawnTimerMax;
+	this->maxEnemies = 5;
 }
 
 void Game::initWindow()
@@ -13,7 +19,7 @@ void Game::initWindow()
 
 	this->window = new sf::RenderWindow(this->videoMode, "Last Man on Mars", sf::Style::Titlebar | sf::Style::Close);
 
-	this->window->setFramerateLimit(144);
+	this->window->setFramerateLimit(60);
 }
 
 void Game::initEnemies()
@@ -47,6 +53,28 @@ const bool Game::running() const
 }
 
 // Functions
+void Game::spawnEnemy()
+{
+	/*
+		@return void
+
+		Spawns enemies and sets their colour / positions.
+		- Sets a random position
+		- Sets a random colour
+		- Adds enemy to the vector
+	*/
+
+	this->enemy.setPosition(
+		static_cast<float>(rand() % static_cast<int>(this->window->getSize().x - this->enemy.getSize().x)),
+		0
+	);
+
+	this->enemy.setFillColor(sf::Color::Red);
+
+	// Spawn the enemy
+	this->enemies.push_back(this->enemy);
+}
+
 void Game::pollEvents()
 {
 	// Event polling
@@ -67,17 +95,93 @@ void Game::pollEvents()
 	}
 }
 
+void Game::updateMousePositions()
+{
+	/*
+		@ return void
+
+		Updates the mouse positions:
+		- Mouse position relative to window (Vector2i)
+	*/
+
+	this->mousePosWindow = sf::Mouse::getPosition(*this->window);
+	this->mousePosView = this->window->mapPixelToCoords(this->mousePosWindow);
+}
+
+void Game::updateEnemies()
+{
+	/*
+		@return void
+
+		Update the enemy spawn timer and spawns enemies
+		when the total amount of enemies is smaller than the maximum.
+		- Moves the enemies.
+		- Removes the enemies at the edge of the screen. // TODO
+	*/
+
+	// Updating the timer for enemy Spawning
+	if (this->enemies.size() < this->maxEnemies)
+	{
+		if (this->enemySpawnTimer >= this->enemySpawnTimerMax)
+		{
+			// Spawn the enemy and reset the timer
+			this->spawnEnemy();
+			this->enemySpawnTimer = 0.f;
+		}
+		else
+		{
+			this->enemySpawnTimer += 1.f;
+		}
+	}
+
+	// Moves the enemies
+	for (int i = 0; i < this->enemies.size(); i++)
+	{
+		// Boolean to check if the enemy was deleted
+		bool deleted = false;
+
+		this->enemies[i].move(0.f, 5.f);
+
+		// Check if clicked upon
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+		{
+			if (this->enemies[i].getGlobalBounds().contains(this->mousePosView))
+			{
+				deleted = true;
+			}
+		}
+
+		// If the enemy is past the bottom of the screen
+		if (this->enemies[i].getPosition().y > this->window->getSize().y)
+		{
+			deleted = true;
+		}
+
+		// Final Delete (remove enemy)
+		if (deleted)
+		{
+			this->enemies.erase(this->enemies.begin() + i);
+		}
+	}
+
+}
+
 void Game::update()
 {
 	this->pollEvents();
+	
+	this->updateMousePositions();
 
-	// Update mouse position
-	// Relative to the screen
-	//std::cout << "Mouse pos: " << sf::Mouse::getPosition().x << " " << sf::Mouse::getPosition().y << "\n";
-	// Relative to the window
-	//std::cout << "Mouse pos: " 
-		//<< sf::Mouse::getPosition(*this->window).x << " " 
-		//<< sf::Mouse::getPosition(*this->window).y << "\n";
+	this->updateEnemies();
+}
+
+void Game::renderEnemies()
+{
+	// Rendering all the enemies
+	for (auto& e : this->enemies)
+	{
+		this->window->draw(e);
+	}
 }
 
 void Game::render()
@@ -93,7 +197,7 @@ void Game::render()
 	this->window->clear();
 
 	// Draw game objects
-	this->window->draw(this->enemy);
+	this->renderEnemies();
 
 	// Display
 	this->window->display();
