@@ -1,4 +1,4 @@
-#include "Game.h""
+#include "Game.h"
 
 // Private Functions
 void Game::initVariables()
@@ -9,7 +9,7 @@ void Game::initVariables()
 	this->points = 0;
 	this->enemySpawnTimerMax = 10.f;
 	this->enemySpawnTimer = this->enemySpawnTimerMax;
-	this->maxEnemies = 5;
+	this->maxEnemies = 10;
 }
 
 void Game::initWindow()
@@ -19,7 +19,7 @@ void Game::initWindow()
 
 	this->window = new sf::RenderWindow(this->videoMode, "Last Man on Mars", sf::Style::Titlebar | sf::Style::Close);
 
-	this->window->setFramerateLimit(60);
+	this->window->setFramerateLimit(144);
 }
 
 void Game::initEnemies()
@@ -66,8 +66,7 @@ void Game::spawnEnemy()
 
 	this->enemy.setPosition(
 		static_cast<float>(rand() % static_cast<int>(this->window->getSize().x - this->enemy.getSize().x)),
-		0
-	);
+		rand() % static_cast<int>(this->window->getSize().y - this->enemy.getSize().y));
 
 	this->enemy.setFillColor(sf::Color::Red);
 
@@ -140,7 +139,7 @@ void Game::updateEnemies()
 		// Boolean to check if the enemy was deleted
 		bool deleted = false;
 
-		this->enemies[i].move(0.f, 5.f);
+		this->enemies[i].move(-1.f,1.f);
 
 		// Check if clicked upon
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -152,7 +151,7 @@ void Game::updateEnemies()
 		}
 
 		// If the enemy is past the bottom of the screen
-		if (this->enemies[i].getPosition().y > this->window->getSize().y)
+		if (this->enemies[i].getPosition().y > this->window->getSize().y || this->enemies[i].getPosition().y < 0 || this->enemies[i].getPosition().x > this->window->getSize().x || this->enemies[i].getPosition().x < 0)
 		{
 			deleted = true;
 		}
