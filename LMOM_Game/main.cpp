@@ -1,25 +1,16 @@
 #include <iostream>
 #include "Game.h"
-
-
+#include <time.h>
 
 int main()
 {
-	// Init srand
-	std::srand(static_cast<unsigned>(time(NULL)));
+	// Init random number seed
+	srand(time(static_cast<unsigned>(0)));
 
-	// Init Game engine
 	Game game;
 
-	// Game Loop
-	while (game.running())
-	{
-		// Update
-		game.update();
+	game.run();
 
-		// Render
-		game.render();
-	}
 
 	// Game End
 	return 0;

@@ -1,64 +1,84 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include<ctime>
+#include<map>
+#include<string>
+#include<sstream>
+#include "Player.h"
+#include "Bullet.h"
+#include "Enemy.h"
 
-#include <SFML/Graphics.hpp>
-#include <SFML/System.hpp>
-#include <SFML/Window.hpp>
-#include <SFML/Audio.hpp>
-#include <SFML/Network.hpp>
-
-/*
-	Description: This class is acting as the Game Engine.
-*/
+using namespace sf;
 
 class Game
 {
 private:
-	// Variables
 	// Window
 	sf::RenderWindow* window;
-	sf::VideoMode videoMode;
-	sf::Event ev;
+	int windowWidth = 1920;
+	int windowHeight = 1080;
 
-	// Mouse Positions
-	sf::Vector2i mousePosWindow;
-	sf::Vector2f mousePosView;
+	// Resources
+	std::map<std::string, sf::Texture*> textures;
+	std::vector<Bullet*> bullets;
 
-	// Game Logic
-	int points;
-	float enemySpawnTimer;
-	float enemySpawnTimerMax;
-	int maxEnemies;
+	// GUI
+	sf::Font font;
+	sf::Text pointText;
 
-	// Game Objects
-	std::vector<sf::RectangleShape> enemies;
-	sf::RectangleShape enemy;
+	sf::Text gameOverText;
+
+	// World
+	sf::Texture worldBackgroundTex;
+	sf::Sprite worldBackground;
+
+	// Systems
+	unsigned points;
+
+	// Player
+	Player* player;
+	sf::Vector2f playerCenter;
+	sf::Vector2f mousePosWindow;
+	sf::Vector2f aimDir;
+	sf::Vector2f aimDirNorm;
+
+	// PlayerGUI
+	sf::RectangleShape playerHpBar;
+	sf::RectangleShape playerHpBarBack;
+
+	// Enemies
+	float spawnTimer;
+	float spawnTimerMax;
+	std::vector<Enemy*> enemies;
 
 	// Private Functions
-	void initVariables();
 	void initWindow();
+	void initTextures();
+	void initGUI();
+	void initWorld();
+	void initSystems();
+
+	void initPlayer();
 	void initEnemies();
 
 public:
-	// Constructors & Destructors
 	Game();
 	virtual ~Game();
 
-	// Accessors
-	const bool running() const;
-
 	// Functions
-	void spawnEnemy();
+	void run();
 
-	void pollEvents();
-	void updateMousePositions();
-
-	void updateEnemies();
+	void updatePollEvents();
+	void updateInput(float dt);
+	void updateGUI();
+	void updateWorld();
+	void updateCollision();
+	void updateBullets(float dt);
+	void updateEnemies(float dt);
+	void updateCombat(float dt);
+	void updatePlayer(float dt);
 	void update();
 
-	void renderEnemies();
+	void renderGUI();
+	void renderWorld();
 	void render();
 };
