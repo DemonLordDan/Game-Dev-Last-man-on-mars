@@ -1,24 +1,32 @@
 #include <iostream>
 #include "Game.h"
+#include "menu.h"
 
 
 
 int main()
 {
-	// Init srand
-	std::srand(static_cast<unsigned>(time(NULL)));
+	// Init Menu
+	menu Menu;
+	while (Menu.running()) {
+		
+		// Init srand
+		std::srand(static_cast<unsigned>(time(NULL)));
 
-	// Init Game engine
-	Game game;
+		// Init Game engine
+		Game game;
 
-	// Game Loop
-	while (game.running())
-	{
-		// Update
-		game.update();
+		// Game Loop
+		if (Menu.getSNumber() == 1) {
+			while (game.running())
+			{
+				// Update
+				game.update();
 
-		// Render
-		game.render();
+				// Render
+				game.render();
+			}
+		}
 	}
 
 	// Game End

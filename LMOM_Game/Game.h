@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <vector>
-#include<ctime>
+#include <ctime>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
