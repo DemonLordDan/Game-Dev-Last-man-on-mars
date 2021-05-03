@@ -91,6 +91,9 @@ void Game::sMenu() {
 			return;
 		}
 	}
+	if (!Menu.running()) {
+		gameState = -1;
+	}
 }
 
 void Game::prewarm() {
@@ -110,8 +113,9 @@ void Game::prewarm() {
 */
 Game::Game()
 {
-	this->prewarm();
 	this->sMenu();
+	this->prewarm();
+	
 	
 }
 

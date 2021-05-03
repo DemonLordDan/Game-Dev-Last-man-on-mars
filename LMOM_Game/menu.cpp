@@ -5,7 +5,7 @@
 void menu::initVariables()
 {
 	this->window = nullptr;
-	this->screenNumber = 2;
+	this->screenNumber = 0;
 	if (!font.loadFromFile("res/fonts/Pixellari.ttf")) {
 		this->window->close();
 	};
