@@ -14,6 +14,7 @@ class menu {
 private:
 
 	//Private Variables
+	sf::Font font;
 	sf::RenderWindow* window;
 	sf::VideoMode videoMode;
 	sf::Event ev;

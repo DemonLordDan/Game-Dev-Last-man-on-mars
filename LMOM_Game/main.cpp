@@ -10,7 +10,6 @@ int main()
 	// Init Menu
 	menu Menu;
 	while (Menu.running()) {
-		
 		// Init srand
 		std::srand(static_cast<unsigned>(time(NULL)));
 		
@@ -31,6 +30,7 @@ int main()
 				game.render();
 			}
 
+			Menu.setSNumber(0);
 		}
 	}
 
