@@ -50,7 +50,11 @@ private:
 	float spawnTimerMax;
 	std::vector<Enemy*> enemies;
 
+	// misc
+	int gameState;
 	// Private Functions
+	void sMenu();
+	void prewarm();
 	void initWindow();
 	void initTextures();
 	void initGUI();

@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "menu.h"
 
 /*
 #########################
@@ -76,13 +77,23 @@ void Game::initEnemies()
 	this->spawnTimer = this->spawnTimerMax;
 }
 
-/*
-###################
-### Constructor ###
-###################
-*/
-Game::Game()
-{
+void Game::sMenu() {
+	menu Menu;
+	while (Menu.running()) {
+		Menu.update();
+		Menu.render();
+		
+		if (Menu.getSNumber() == 1) {
+			return;
+		}
+		else if (Menu.getSNumber() == 5) {
+			gameState = -1;
+			return;
+		}
+	}
+}
+
+void Game::prewarm() {
 	this->initWindow();
 	this->initTextures();
 	this->initGUI();
@@ -92,6 +103,17 @@ Game::Game()
 	this->initPlayer();
 	this->initEnemies();
 }
+/*
+###################
+### Constructor ###
+###################
+*/
+Game::Game()
+{
+	this->prewarm();
+	this->sMenu();
+	
+}
 
 /*
 #####################
@@ -100,26 +122,30 @@ Game::Game()
 */
 Game::~Game()
 {
-	delete this->window;
-	delete this->player;
+	if (this->window != NULL) {
+		delete this->window;
+		delete this->player;
 
-	// Delete Textures
-	for (auto& i : this->textures)
-	{
-		delete i.second;
-	}
+		// Delete Textures
+		for (auto& i : this->textures)
+		{
+			delete i.second;
+		}
 
-	// Delete Bullets
-	for (auto *i : this->bullets)
-	{
-		delete i;
-	}
+		// Delete Bullets
+		for (auto* i : this->bullets)
+		{
+			delete i;
+		}
 
-	// Delete Enemies
-	for (auto* i : this->enemies)
-	{
-		delete i;
+		// Delete Enemies
+		for (auto* i : this->enemies)
+		{
+			delete i;
+		}
 	}
+	
+	exit;
 }
 
 /*
@@ -154,6 +180,9 @@ void Game::updatePollEvents()
 		}
 		if (e.Event::KeyPressed && e.Event::key.code == sf::Keyboard::Escape)
 		{
+			this->window->close();
+		}
+		if (gameState == -1) {
 			this->window->close();
 		}
 	}
