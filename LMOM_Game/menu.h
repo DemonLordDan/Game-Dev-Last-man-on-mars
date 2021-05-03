@@ -21,7 +21,7 @@ private:
 	sf::Vector2f mousePosView;
 	std::vector<sf::RectangleShape> buttons;
 	sf::RectangleShape button;
-
+	std::vector<sf::Text> msgs;
 
 	//Private Functions
 	void initVariables();
@@ -45,6 +45,8 @@ public:
 	void pollEvents();
 	void updateMousePositions();
 	int getSNumber();
+	void setSNumber(int number);
 	void update();
+	void renderButtons();
 	void render();
 };

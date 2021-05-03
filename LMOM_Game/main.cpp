@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include "Game.h"
 #include "menu.h"
@@ -12,12 +13,15 @@ int main()
 		
 		// Init srand
 		std::srand(static_cast<unsigned>(time(NULL)));
-
-		// Init Game engine
-		Game game;
+		
+		Menu.update();
+		
+		Menu.render();
 
 		// Game Loop
 		if (Menu.getSNumber() == 1) {
+			// Init Game engine
+			Game game;
 			while (game.running())
 			{
 				// Update
@@ -26,6 +30,7 @@ int main()
 				// Render
 				game.render();
 			}
+
 		}
 	}
 

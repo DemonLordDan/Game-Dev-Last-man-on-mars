@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
+
 # Require modern C++
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,7 +21,7 @@ add_custom_target(copy_resources ALL COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>/res
 )
 
-#### Last Man On Mars####
+#### Last Man On Mars ####
 file(GLOB_RECURSE SOURCES LMOM_Game/*.cpp LMOM_Game/*.h)
 add_executable(LMOM_Game ${SOURCES})
 target_include_directories(LMOM_Game PRIVATE ${SFML_INCS})
