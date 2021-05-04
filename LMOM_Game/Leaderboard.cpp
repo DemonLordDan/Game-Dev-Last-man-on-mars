@@ -37,22 +37,68 @@ void Leaderboard::initGUI()
 	this->labels.setFont(this->font);
 	this->labels.setCharacterSize(50);
 	this->labels.setFillColor(sf::Color::White);
-	this->labels.setString("USER   -   WAVE   -   POINTS");
+	this->labels.setString("WAVE   -   POINTS");
 	this->labels.setPosition((
 		this->window->getSize().x / 2) - this->labels.getGlobalBounds().width / 2,
-		this->window->getSize().y * 0.4);
+		this->window->getSize().y * 0.25);
 
 	// Init High Scores
-
+	this->scores.setFont(this->font);
+	this->scores.setCharacterSize(50);
+	this->scores.setFillColor(sf::Color::White);
+	this->scores.setPosition((
+		this->window->getSize().x / 2) - this->scores.getGlobalBounds().width / 2,
+		this->window->getSize().y * 0.3);
 
 	// Init Back Button
 	this->backText.setFont(this->font);
 	this->backText.setCharacterSize(50);
 	this->backText.setFillColor(sf::Color::White);
-	this->backText.setString("QUIT");
-	this->backText.setPosition((
-		this->window->getSize().x / 2) - this->backText.getGlobalBounds().width / 2,
+	this->backText.setString("BACK");
+	this->backText.setPosition(
+		60.f,
 		this->window->getSize().y * 0.8);
+}
+
+void Leaderboard::readFromFile()
+{
+	// Read the file
+	ifstream file("res/saves/leaderboard.txt");
+
+	// Validation
+	if (!file.is_open())
+	{
+		cout << "ERROR::LEADERBOARD::Failed to load leaderboard.txt" << "\n";
+	}
+
+	// Temporary Variables
+	string tempString;
+
+	// Using a while loop along with getline(), read through the file, line by line
+	while (getline(file, this->fileData))
+	{
+		stringstream ss(this->fileData);
+
+		getline(ss, tempString, ',');
+		this->waveNumber = stoi(tempString);
+
+		getline(ss, tempString, ',');
+		this->points = stoi(tempString);
+
+		addToScores();
+	}
+
+	// Close the file
+	file.close();
+}
+
+void Leaderboard::addToScores()
+{
+	this->scores.setString(
+		scores.getString() + "\n" + 
+		to_string(this->waveNumber) + " - " + 
+		to_string(this->points)
+	);
 }
 
 /*
@@ -63,6 +109,7 @@ void Leaderboard::initGUI()
 Leaderboard::Leaderboard()
 {
 	initWindow();
+	readFromFile();
 	initGUI();
 }
 

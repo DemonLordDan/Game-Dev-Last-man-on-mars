@@ -10,6 +10,9 @@ Author: Andrew Morrison
 #include<string>
 #include<sstream>
 #include<iostream>
+#include<fstream>
+
+using namespace std;
 
 class Leaderboard
 {
@@ -30,9 +33,16 @@ private:
 	sf::Vector2i mousePosWindow;
 	sf::Vector2f mousePosView;
 
+	// Variables
+	string fileData;
+	int waveNumber;
+	int points;
+
 	// Private Functions
 	void initWindow();
 	void initGUI();
+	void readFromFile();
+	void addToScores();
 
 public:
 	// Constructor

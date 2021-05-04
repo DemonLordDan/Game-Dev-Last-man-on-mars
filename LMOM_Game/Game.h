@@ -8,9 +8,13 @@ Author: Andrew Morrison
 #include<map>
 #include<string>
 #include<sstream>
+#include<fstream>
+#include<iostream>
 #include "Player.h"
 #include "Bullet.h"
 #include "Enemy.h"
+
+using namespace std;
 
 class Game
 {
@@ -29,16 +33,14 @@ private:
 	sf::Text pointText;
 
 	sf::Text gameOverText;
+	sf::Text gameOverTextSecondary;
 
 	sf::Text waveNumberText;
 
 	// Shop GUI
 	sf::Text shopText;
-	sf::RectangleShape upgradeDmgButton;
 	sf::Text upgradeDmgText;
-	sf::RectangleShape upgradeFirerateButton;
 	sf::Text upgradeFirerateText;
-	sf::Text exitShop;
 
 	// World
 	sf::Texture worldBackgroundTex;
@@ -48,6 +50,7 @@ private:
 	unsigned points;
 	int waveNumber;
 	bool shopOpen;
+	bool gameOver;
 
 	// Player
 	Player* player;
@@ -71,12 +74,20 @@ private:
 	float enemiesPerRound;
 	float enemySpeed; // Generic speed before changes
 
+	// Variables
+	string fileData;
+	int LBwaveNumber[5];
+	int LBpoints[5];
+
 	// Private Functions
 	void initWindow();
 	void initTextures();
 	void initGUI();
 	void initWorld();
 	void initSystems();
+
+	void readFromFile();
+	void writeToFile();
 
 	void initPlayer();
 	void initEnemies();
@@ -87,6 +98,7 @@ public:
 
 	// Functions
 	void run();
+	void death();
 
 	void updatePollEvents();
 	void updateMousePosition();

@@ -44,7 +44,16 @@ void Game::initGUI()
 	this->gameOverText.setString("Game Over!");
 	this->gameOverText.setPosition(
 		this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f, 
-		this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height / 2.f);
+		this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height);
+
+	// Init GameoverSecondary Text
+	this->gameOverTextSecondary.setFont(this->font);
+	this->gameOverTextSecondary.setCharacterSize(50);
+	this->gameOverTextSecondary.setFillColor(sf::Color::Red);
+	this->gameOverTextSecondary.setString("Press ESC to return to the menu!");
+	this->gameOverTextSecondary.setPosition(
+		this->window->getSize().x / 2.f - this->gameOverTextSecondary.getGlobalBounds().width / 2.f,
+		this->window->getSize().y / 2.f + this->gameOverTextSecondary.getGlobalBounds().height);
 
 	// Init Player GUI
 	this->playerHpBar.setSize(sf::Vector2f(300.f, 25.f));
@@ -88,16 +97,6 @@ void Game::initGUI()
 		(this->window->getSize().x / 3.f) * 2 - this->upgradeFirerateText.getGlobalBounds().width / 2.f,
 		this->window->getSize().y / 2.f - this->upgradeFirerateText.getGlobalBounds().height / 2.f);
 
-	// Shop Upgrade Damage Button
-	this->upgradeDmgButton.setSize(sf::Vector2f(upgradeDmgText.getGlobalBounds().width, upgradeDmgText.getGlobalBounds().height));
-	this->upgradeDmgButton.setFillColor(sf::Color(25, 25, 25, 200));
-	this->upgradeDmgButton.setPosition(upgradeDmgText.getPosition());
-
-	// Shop Upgrade Firerate Button
-	this->upgradeFirerateButton.setSize(sf::Vector2f(upgradeFirerateText.getGlobalBounds().width, upgradeFirerateText.getGlobalBounds().height));
-	this->upgradeFirerateButton.setFillColor(sf::Color(25, 25, 25, 200));
-	this->upgradeFirerateButton.setPosition(upgradeFirerateText.getPosition());
-
 	this->shopOpen = false;
 }
 
@@ -115,6 +114,110 @@ void Game::initSystems()
 {
 	this->points = 0;
 	this->waveNumber = 1;
+	this->gameOver = false;
+}
+
+void Game::readFromFile()
+{
+	// Read the file
+	ifstream file("res/saves/leaderboard.txt");
+
+	// Validation
+	if (!file.is_open())
+	{
+		std::cout << "ERROR::LEADERBOARD::Failed to load leaderboard.txt" << "\n";
+	}
+
+	// Temporary Variables
+	string tempString;
+	string tempString2;
+	int counter = 0;
+
+	// Using a while loop along with getline(), read through the file, line by line
+	while (getline(file, this->fileData))
+	{
+		stringstream ss(this->fileData);
+
+		getline(ss, tempString, ',');
+		this->LBwaveNumber[counter] = stoi(tempString);
+
+		getline(ss, tempString2, ',');
+		this->LBpoints[counter] = stoi(tempString2);
+
+		counter++;
+	}
+
+	// Close the file
+	file.close();
+}
+
+void Game::writeToFile()
+{
+	// Temp Variables
+	int placement = 0;
+	bool placed = false;
+	
+	// Loop through the current leaderboard
+	for (int counter = 0; counter < 5; counter++)
+	{
+		// Compare current wave number to the leaderboard
+		if (this->waveNumber > this->LBwaveNumber[counter])
+		{
+			placed = true;
+		}
+		// If they survived to the same wave, check points
+		else if (this->waveNumber == this->LBwaveNumber[counter] && this->points > this->LBpoints[counter])
+		{
+			placed = true;
+		}
+
+		// Update the users placement
+		if (placed)
+		{
+			placement = counter + 1;
+
+			placed = false;
+		}
+
+	}
+
+	// Check if the user placed at all
+	if (placement > 0)
+	{
+		// Assign the users placement
+		this->LBwaveNumber[placement - 1] = this->waveNumber;
+		this->LBpoints[placement - 1] = this->points;
+
+		// Clear the textfile and open it
+		ofstream openFile;
+
+		openFile.open("res/saves/leaderboard.txt", fstream::out, ofstream::trunc);
+
+		// Validation
+		if (!openFile.is_open())
+		{
+			std::cout << "ERROR::LEADERBOARD::Failed to load leaderboard.txt" << "\n";
+		}
+
+		// Loop through the new leaderboard
+		for (int counter = 0; counter < 5; counter++)
+		{
+			// Write the new leaderboard to file
+			openFile << to_string(this->LBwaveNumber[counter]) << "," << to_string(this->LBpoints[counter]) << "," << endl;
+		}
+
+		// Update gameover text
+		gameOverTextSecondary.setString("New Highscore! - Press ESC!");
+		this->gameOverTextSecondary.setPosition(
+			this->window->getSize().x / 2.f - this->gameOverTextSecondary.getGlobalBounds().width / 2.f,
+			this->window->getSize().y / 2.f + this->gameOverTextSecondary.getGlobalBounds().height);
+
+		openFile.flush();
+
+		// Close text file
+		openFile.close();
+	}
+
 }
 
 void Game::initPlayer()
@@ -126,13 +229,13 @@ void Game::initEnemies()
 {
 	this->spawnTimerMax = 5.f;
 	this->spawnTimer = this->spawnTimerMax;
-	this->spawnTimerRate = 3.f;
+	this->spawnTimerRate = 5.f;
 	this->maxEnemies = 24;
 
 	this->enemiesPerRound = 10;
 	this->enemiesLeft = enemiesPerRound;
 
-	this->enemySpeed = 10.f;
+	this->enemySpeed = 20.f;
 }
 
 /*
@@ -200,9 +303,18 @@ void Game::run()
 		{
 			this->updateShop();
 		}
+		else
+		{
+
+		}
 
 		this->render();
 	}
+}
+
+void Game::death()
+{
+
 }
 
 void Game::updatePollEvents()
@@ -215,7 +327,7 @@ void Game::updatePollEvents()
 		{
 			this->window->close();
 		}
-		if (e.Event::KeyPressed && e.Event::key.code == sf::Keyboard::Escape)
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
 			this->window->close();
 		}
@@ -338,8 +450,6 @@ void Game::updateBullets(float dt)
 			delete this->bullets.at(counter);
 			this->bullets.erase(this->bullets.begin() + counter);
 			--counter;
-
-			std::cout << this->bullets.size() << "\n";
 		}
 		// Bullet culling (right of screen)
 		else if (bullet->getBounds().left + bullet->getBounds().width > this->windowWidth)
@@ -348,8 +458,6 @@ void Game::updateBullets(float dt)
 			delete this->bullets.at(counter);
 			this->bullets.erase(this->bullets.begin() + counter);
 			--counter;
-
-			std::cout << this->bullets.size() << "\n";
 		}
 		// Bullet culling (bottom of screen)
 		else if (bullet->getBounds().top + bullet->getBounds().height > this->windowHeight)
@@ -358,8 +466,6 @@ void Game::updateBullets(float dt)
 			delete this->bullets.at(counter);
 			this->bullets.erase(this->bullets.begin() + counter);
 			--counter;
-
-			std::cout << this->bullets.size() << "\n";
 		}
 		// Bullet culling (left of screen)
 		else if (bullet->getBounds().left + bullet->getBounds().width < 0.f)
@@ -368,8 +474,6 @@ void Game::updateBullets(float dt)
 			delete this->bullets.at(counter);
 			this->bullets.erase(this->bullets.begin() + counter);
 			--counter;
-
-			std::cout << this->bullets.size() << "\n";
 		}
 
 		++counter;
@@ -520,24 +624,8 @@ void Game::updateWave()
 		this->waveNumber++;
 		// Increment number of enemies
 		this->enemiesLeft = this->enemiesPerRound * this->waveNumber;
-
-		// Update spawn timer rate 
-		if (this->waveNumber < 5)
-		{
-			this->spawnTimerRate = 2.f;
-		}
-		else if (this->waveNumber < 10)
-		{
-			this->spawnTimerRate = 3.f;
-		}
-		else if (this->waveNumber < 15)
-		{
-			this->spawnTimerRate = 4.f;
-		}
-		else if (this->waveNumber < 20)
-		{
-			this->spawnTimerRate = 5.f;
-		}
+		// Increase spawntimerrate
+		this->spawnTimerRate += 1.f;
 
 		// End of wave shop
 		this->shopOpen = true;
@@ -550,10 +638,10 @@ void Game::updateShop()
 	updateMousePosition();
 
 	// If the mouse hovers over the upgrade button
-	if (this->upgradeDmgButton.getGlobalBounds().contains(this->mousePosView))
+	if (this->upgradeDmgText.getGlobalBounds().contains(this->mousePosView))
 	{
 		// Update colour
-		this->upgradeDmgButton.setFillColor(sf::Color(25, 25, 25, 200));
+		this->upgradeDmgText.setFillColor(sf::Color::Yellow);
 
 		// Upgrade damage 
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -565,14 +653,14 @@ void Game::updateShop()
 	else
 	{
 		// Return the colour to normal
-		this->upgradeDmgButton.setFillColor(sf::Color(50, 50, 50, 200));
+		this->upgradeDmgText.setFillColor(sf::Color::White);
 	}
 
 	// If the mouse hovers over the upgrade button
-	if (this->upgradeFirerateButton.getGlobalBounds().contains(this->mousePosView))
+	if (this->upgradeFirerateText.getGlobalBounds().contains(this->mousePosView))
 	{
 		// Update colour
-		this->upgradeFirerateButton.setFillColor(sf::Color(25, 25, 25, 200));
+		this->upgradeFirerateText.setFillColor(sf::Color::Yellow);
 
 		// Upgrade firerate
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -583,7 +671,7 @@ void Game::updateShop()
 	}
 	else
 	{
-		this->upgradeFirerateButton.setFillColor(sf::Color(50, 50, 50, 200));
+		this->upgradeFirerateText.setFillColor(sf::Color::White);
 	}
 
 }
@@ -626,11 +714,6 @@ void Game::renderWorld()
 
 void Game::renderShop()
 {
-	// Render shop buttons
-	this->window->draw(this->upgradeDmgButton);
-	this->window->draw(this->upgradeFirerateButton);
-	this->window->draw(this->exitShop);
-
 	// Render shop Text
 	this->window->draw(this->shopText);
 	this->window->draw(this->upgradeDmgText);
@@ -664,7 +747,7 @@ void Game::render()
 	this->renderGUI();
 
 	// Render the shop
-	if (this->shopOpen)
+	if (this->shopOpen && !(this->player->getHp() <= 0))
 	{
 		this->renderShop();
 	}
@@ -672,7 +755,19 @@ void Game::render()
 	// Game over screen
 	if (this->player->getHp() <= 0)
 	{
+		// Show gameover text
 		this->window->draw(this->gameOverText);
+		this->window->draw(this->gameOverTextSecondary);
+
+		if (!this->gameOver)
+		{
+			// Check Highscores
+			readFromFile();
+			// Update highscores
+			writeToFile();
+
+			this->gameOver = true;
+		}
 	}
 
 	// Display the current Frame
