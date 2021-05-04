@@ -71,11 +71,7 @@ private:
 	float enemiesPerRound;
 	float enemySpeed; // Generic speed before changes
 
-	// misc
-	int gameState;
 	// Private Functions
-	void sMenu();
-	void prewarm();
 	void initWindow();
 	void initTextures();
 	void initGUI();

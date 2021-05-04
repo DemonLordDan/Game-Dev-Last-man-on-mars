@@ -4,7 +4,6 @@ Description: This class handles all main functions of the game, bringing all the
 Author: Andrew Morrison
 */
 #include "Game.h"
-#include "menu.h"
 
 /*
 #########################
@@ -136,26 +135,13 @@ void Game::initEnemies()
 	this->enemySpeed = 10.f;
 }
 
-void Game::sMenu() {
-	menu Menu;
-	while (Menu.running()) {
-		Menu.update();
-		Menu.render();
-		
-		if (Menu.getSNumber() == 1) {
-			return;
-		}
-		else if (Menu.getSNumber() == 5) {
-			gameState = -1;
-			return;
-		}
-	}
-	if (!Menu.running()) {
-		gameState = -1;
-	}
-}
-
-void Game::prewarm() {
+/*
+###################
+### Constructor ###
+###################
+*/
+Game::Game()
+{
 	this->initWindow();
 	this->initTextures();
 	this->initGUI();
@@ -165,18 +151,6 @@ void Game::prewarm() {
 	this->initPlayer();
 	this->initEnemies();
 }
-/*
-###################
-### Constructor ###
-###################
-*/
-Game::Game()
-{
-	this->sMenu();
-	this->prewarm();
-	
-	
-}
 
 /*
 #####################
@@ -185,30 +159,26 @@ Game::Game()
 */
 Game::~Game()
 {
-	if (this->window != NULL) {
-		delete this->window;
-		delete this->player;
+	delete this->window;
+	delete this->player;
 
-		// Delete Textures
-		for (auto& i : this->textures)
-		{
-			delete i.second;
-		}
-
-		// Delete Bullets
-		for (auto* i : this->bullets)
-		{
-			delete i;
-		}
-
-		// Delete Enemies
-		for (auto* i : this->enemies)
-		{
-			delete i;
-		}
+	// Delete Textures
+	for (auto& i : this->textures)
+	{
+		delete i.second;
 	}
-	
-	exit;
+
+	// Delete Bullets
+	for (auto *i : this->bullets)
+	{
+		delete i;
+	}
+
+	// Delete Enemies
+	for (auto* i : this->enemies)
+	{
+		delete i;
+	}
 }
 
 /*
@@ -247,9 +217,6 @@ void Game::updatePollEvents()
 		}
 		if (e.Event::KeyPressed && e.Event::key.code == sf::Keyboard::Escape)
 		{
-			this->window->close();
-		}
-		if (gameState == -1) {
 			this->window->close();
 		}
 	}
