@@ -1,3 +1,8 @@
+/*
+Title: Bullet Class
+Description: Handles the initialization of bullets along with functions dedicated to accessing and manipulating the bullets.
+Author: Andrew Morrison
+*/
 #include "Bullet.h"
 
 /*

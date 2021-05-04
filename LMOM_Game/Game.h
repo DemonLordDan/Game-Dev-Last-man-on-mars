@@ -1,3 +1,8 @@
+/*
+Title: Game Header
+Description: Creates all the required variables, functions, accessors and modifiers for the game class.
+Author: Andrew Morrison
+*/
 #pragma once
 
 #include<map>
@@ -7,15 +12,13 @@
 #include "Bullet.h"
 #include "Enemy.h"
 
-using namespace sf;
-
 class Game
 {
 private:
 	// Window
 	sf::RenderWindow* window;
-	int windowWidth = 1920;
-	int windowHeight = 1080;
+	int windowWidth = 1280;
+	int windowHeight = 720;
 
 	// Resources
 	std::map<std::string, sf::Texture*> textures;
@@ -27,17 +30,30 @@ private:
 
 	sf::Text gameOverText;
 
+	sf::Text waveNumberText;
+
+	// Shop GUI
+	sf::Text shopText;
+	sf::RectangleShape upgradeDmgButton;
+	sf::Text upgradeDmgText;
+	sf::RectangleShape upgradeFirerateButton;
+	sf::Text upgradeFirerateText;
+	sf::Text exitShop;
+
 	// World
 	sf::Texture worldBackgroundTex;
 	sf::Sprite worldBackground;
 
 	// Systems
 	unsigned points;
+	int waveNumber;
+	bool shopOpen;
 
 	// Player
 	Player* player;
 	sf::Vector2f playerCenter;
-	sf::Vector2f mousePosWindow;
+	sf::Vector2i mousePosWindow;
+	sf::Vector2f mousePosView;
 	sf::Vector2f aimDir;
 	sf::Vector2f aimDirNorm;
 
@@ -48,7 +64,12 @@ private:
 	// Enemies
 	float spawnTimer;
 	float spawnTimerMax;
+	float spawnTimerRate;
 	std::vector<Enemy*> enemies;
+	float maxEnemies; // Maximum enemies on screen at once
+	float enemiesLeft;
+	float enemiesPerRound;
+	float enemySpeed; // Generic speed before changes
 
 	// Private Functions
 	void initWindow();
@@ -68,6 +89,7 @@ public:
 	void run();
 
 	void updatePollEvents();
+	void updateMousePosition();
 	void updateInput(float dt);
 	void updateGUI();
 	void updateWorld();
@@ -76,9 +98,12 @@ public:
 	void updateEnemies(float dt);
 	void updateCombat(float dt);
 	void updatePlayer(float dt);
+	void updateWave();
+	void updateShop();
 	void update();
 
 	void renderGUI();
 	void renderWorld();
+	void renderShop();
 	void render();
 };

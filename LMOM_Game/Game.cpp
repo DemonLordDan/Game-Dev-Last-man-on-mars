@@ -1,3 +1,8 @@
+/*
+Title: Game Class
+Description: This class handles all main functions of the game, bringing all the classes functionality to one place.
+Author: Andrew Morrison
+*/
 #include "Game.h"
 
 /*
@@ -48,6 +53,52 @@ void Game::initGUI()
 
 	this->playerHpBarBack = this->playerHpBar;
 	this->playerHpBarBack.setFillColor(sf::Color(25, 25, 25, 200));
+
+	// Wave Number GUI
+	this->waveNumberText.setFont(this->font);
+	this->waveNumberText.setCharacterSize(100);
+	this->waveNumberText.setFillColor(sf::Color::Red);
+	this->waveNumberText.setString("1");
+	this->waveNumberText.setPosition(20, (this->windowHeight - 60) - waveNumberText.getGlobalBounds().height);
+
+	// Shop GUI Text
+	this->shopText.setFont(this->font);
+	this->shopText.setCharacterSize(100);
+	this->shopText.setFillColor(sf::Color::Yellow);
+	this->shopText.setString("Shop");
+	this->shopText.setPosition(
+		this->window->getSize().x / 2.f - this->shopText.getGlobalBounds().width / 2.f,
+		this->window->getSize().y / 3.f - this->shopText.getGlobalBounds().height / 2.f);
+
+	// Shop Upgrade DMG
+	this->upgradeDmgText.setFont(this->font);
+	this->upgradeDmgText.setCharacterSize(50);
+	this->upgradeDmgText.setFillColor(sf::Color::White);
+	this->upgradeDmgText.setString("Upgrade Damage");
+	this->upgradeDmgText.setPosition(
+		this->window->getSize().x / 3.f - this->upgradeDmgText.getGlobalBounds().width / 2.f,
+		this->window->getSize().y / 2.f - this->upgradeDmgText.getGlobalBounds().height / 2.f);
+
+	// Shop Upgrade DMG
+	this->upgradeFirerateText.setFont(this->font);
+	this->upgradeFirerateText.setCharacterSize(50);
+	this->upgradeFirerateText.setFillColor(sf::Color::White);
+	this->upgradeFirerateText.setString("Upgrade Firerate");
+	this->upgradeFirerateText.setPosition(
+		(this->window->getSize().x / 3.f) * 2 - this->upgradeFirerateText.getGlobalBounds().width / 2.f,
+		this->window->getSize().y / 2.f - this->upgradeFirerateText.getGlobalBounds().height / 2.f);
+
+	// Shop Upgrade Damage Button
+	this->upgradeDmgButton.setSize(sf::Vector2f(upgradeDmgText.getGlobalBounds().width, upgradeDmgText.getGlobalBounds().height));
+	this->upgradeDmgButton.setFillColor(sf::Color(25, 25, 25, 200));
+	this->upgradeDmgButton.setPosition(upgradeDmgText.getPosition());
+
+	// Shop Upgrade Firerate Button
+	this->upgradeFirerateButton.setSize(sf::Vector2f(upgradeFirerateText.getGlobalBounds().width, upgradeFirerateText.getGlobalBounds().height));
+	this->upgradeFirerateButton.setFillColor(sf::Color(25, 25, 25, 200));
+	this->upgradeFirerateButton.setPosition(upgradeFirerateText.getPosition());
+
+	this->shopOpen = false;
 }
 
 void Game::initWorld()
@@ -63,6 +114,7 @@ void Game::initWorld()
 void Game::initSystems()
 {
 	this->points = 0;
+	this->waveNumber = 1;
 }
 
 void Game::initPlayer()
@@ -74,6 +126,13 @@ void Game::initEnemies()
 {
 	this->spawnTimerMax = 5.f;
 	this->spawnTimer = this->spawnTimerMax;
+	this->spawnTimerRate = 3.f;
+	this->maxEnemies = 24;
+
+	this->enemiesPerRound = 10;
+	this->enemiesLeft = enemiesPerRound;
+
+	this->enemySpeed = 10.f;
 }
 
 /*
@@ -133,9 +192,13 @@ void Game::run()
 	{
 		this->updatePollEvents();
 
-		if (this->player->getHp() > 0)
+		if (this->player->getHp() > 0 && this->shopOpen == false)
 		{
 			this->update();
+		}
+		else if (this->shopOpen)
+		{
+			this->updateShop();
 		}
 
 		this->render();
@@ -157,6 +220,13 @@ void Game::updatePollEvents()
 			this->window->close();
 		}
 	}
+}
+
+void Game::updateMousePosition()
+{
+	// Collects the current mouse position
+	this->mousePosWindow = sf::Mouse::getPosition(*this->window);
+	this->mousePosView = this->window->mapPixelToCoords(this->mousePosWindow);
 }
 
 void Game::updateInput(float dt)
@@ -185,14 +255,13 @@ void Game::updateInput(float dt)
 
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && this->player->canAttack())
 	{
-		// Collects the current mouse position
-		this->mousePosWindow = sf::Vector2f(Mouse::getPosition(*window));
+		updateMousePosition();
 
 		// Collect the center position of the player
 		this->playerCenter = sf::Vector2f(this->player->getPos().x + (this->player->getBounds().width/2.f), this->player->getPos().y + (this->player->getBounds().height / 2.f));
 
 		// Calculates the normalised aim direction
-		this->aimDir = this->mousePosWindow - this->playerCenter;
+		this->aimDir = this->mousePosView - this->playerCenter;
 		this->aimDirNorm = this->aimDir / static_cast<float>(sqrt(pow(this->aimDir.x, 2) + pow(this->aimDir.y, 2)));
 
 		// Creates a new bullet
@@ -200,7 +269,7 @@ void Game::updateInput(float dt)
 			this->textures["BULLET"],
 			this->playerCenter.x,
 			this->playerCenter.y,
-			this->aimDirNorm, 200.f
+			this->aimDirNorm, 400.f
 		));
 	}
 }
@@ -216,6 +285,13 @@ void Game::updateGUI()
 	// Update player GUI
 	float hpPercent = static_cast<float>(this->player->getHp()) / this->player->getHpMax();
 	this->playerHpBar.setSize(sf::Vector2f(300.f * hpPercent, this->playerHpBar.getSize().y));
+
+	// Update Wave GUI
+	std::stringstream waveNo;
+
+	waveNo << this->waveNumber;
+
+	this->waveNumberText.setString(waveNo.str());
 }
 
 void Game::updateWorld()
@@ -302,53 +378,75 @@ void Game::updateBullets(float dt)
 
 void Game::updateEnemies(float dt)
 {
-	// Variables (these will decide if the enemy will spawn at the top/bottom/left/right of the screen)
-	int enemy_x = rand() % 2 + 1;
-	int enemy_y = rand() % 2 + 1;
-
-	// Final spawn position coordinates
-	int pos_x = 0;
-	int pos_y = 0;
-
-	// Define spawn coordinates
-	if (enemy_x == 1)
+	// Checks to see if there are enemies left for this round
+	if (this->enemiesLeft > 0)
 	{
-		if (enemy_y == 1)
+		// Checks if the spawn cap has been met
+		if (this->enemies.size() <= this->maxEnemies)
 		{
-			pos_x = 40;
-			pos_y = rand() % (windowHeight - 40) + 40;
-		}
-		else
-		{
-			pos_x = rand() % (windowWidth - 40) + 40;
-			pos_y = 40;
+			// Variables (these will decide if the enemy will spawn at the top/bottom/left/right of the screen)
+			int enemy_x = rand() % 2 + 1;
+			int enemy_y = rand() % 2 + 1;
+
+			// Final spawn position coordinates
+			int pos_x = 0;
+			int pos_y = 0;
+
+			// Define spawn coordinates
+			if (enemy_x == 1)
+			{
+				if (enemy_y == 1)
+				{
+					pos_x = 40;
+					pos_y = rand() % (windowHeight - 40) + 40;
+				}
+				else
+				{
+					pos_x = rand() % (windowWidth - 40) + 40;
+					pos_y = 40;
+				}
+			}
+			else
+			{
+				if (enemy_y == 1)
+				{
+					pos_x = (windowWidth - 80);
+					pos_y = rand() % (windowHeight - 80) + 40;
+				}
+				else
+				{
+					pos_x = rand() % (windowWidth - 80) + 40;
+					pos_y = (windowHeight - 80);
+				}
+			}
+
+
+			// Increase the spawn timer
+			this->spawnTimer += (this->spawnTimerRate * dt);
+
+			if (this->spawnTimer >= this->spawnTimerMax)
+			{
+				if (this->waveNumber <= 10)
+				{
+					// Spawn the enemy
+					this->enemies.push_back(new Enemy(
+						pos_x, pos_y, // set enemy position
+						this->enemySpeed + this->waveNumber)); // set enemy movement speed (10 + <waveNumber>)
+				}
+				// Ensures the maximum movement speed is double the original
+				else
+				{
+					// Spawn the enemy
+					this->enemies.push_back(new Enemy(pos_x, pos_y, this->enemySpeed * 2));
+				}
+
+				// Reset the spawn timer
+				this->spawnTimer = 0.f;
+				// Update the spawn cap
+				--this->enemiesLeft;
+			}
 		}
 	}
-	else
-	{
-		if (enemy_y == 1)
-		{
-			pos_x = (windowWidth - 80);
-			pos_y = rand() % (windowHeight - 80) + 40;
-		}
-		else
-		{
-			pos_x = rand() % (windowWidth - 80) + 40;
-			pos_y = (windowHeight - 80);
-		}
-	}
-
-	// Increase the spawn timer
-	this->spawnTimer += (1.f * dt);
-
-	if (this->spawnTimer >= this->spawnTimerMax)
-	{
-		// Spawn the enemy
-		this->enemies.push_back(new Enemy(pos_x, pos_y, 10.f));
-		// Reset the spawn timer
-		this->spawnTimer = 0.f;
-	}
-
 	// Update
 	unsigned counter = 0;
 	for (auto* enemy : this->enemies)
@@ -390,8 +488,12 @@ void Game::updateCombat(float dt)
 				this->points += this->enemies[i]->getPoints();
 
 				// Remove enemies
-				delete this->enemies[i];
-				this->enemies.erase(this->enemies.begin() + i);
+				this->enemies[i]->loseHp(this->player->getDamage());
+				if (this->enemies[i]->getHp() == 0)
+				{
+					delete this->enemies[i];
+					this->enemies.erase(this->enemies.begin() + i);
+				}
 
 				// Remove bullets
 				delete this->bullets[k];
@@ -407,6 +509,83 @@ void Game::updateCombat(float dt)
 void Game::updatePlayer(float dt)
 {
 	this->player->update(dt);
+}
+
+void Game::updateWave()
+{
+	// Start next wave
+	if (this->enemies.size() == 0 && this->enemiesLeft == 0)
+	{
+		// Increase wave number
+		this->waveNumber++;
+		// Increment number of enemies
+		this->enemiesLeft = this->enemiesPerRound * this->waveNumber;
+
+		// Update spawn timer rate 
+		if (this->waveNumber < 5)
+		{
+			this->spawnTimerRate = 2.f;
+		}
+		else if (this->waveNumber < 10)
+		{
+			this->spawnTimerRate = 3.f;
+		}
+		else if (this->waveNumber < 15)
+		{
+			this->spawnTimerRate = 4.f;
+		}
+		else if (this->waveNumber < 20)
+		{
+			this->spawnTimerRate = 5.f;
+		}
+
+		// End of wave shop
+		this->shopOpen = true;
+	}
+}
+
+void Game::updateShop()
+{
+	// Update the mouse position
+	updateMousePosition();
+
+	// If the mouse hovers over the upgrade button
+	if (this->upgradeDmgButton.getGlobalBounds().contains(this->mousePosView))
+	{
+		// Update colour
+		this->upgradeDmgButton.setFillColor(sf::Color(25, 25, 25, 200));
+
+		// Upgrade damage 
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+		{
+			this->player->setDamage(player->getDamage() + 10);
+			this->shopOpen = false;
+		}
+	}
+	else
+	{
+		// Return the colour to normal
+		this->upgradeDmgButton.setFillColor(sf::Color(50, 50, 50, 200));
+	}
+
+	// If the mouse hovers over the upgrade button
+	if (this->upgradeFirerateButton.getGlobalBounds().contains(this->mousePosView))
+	{
+		// Update colour
+		this->upgradeFirerateButton.setFillColor(sf::Color(25, 25, 25, 200));
+
+		// Upgrade firerate
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+		{
+			this->player->setCooldownMultiplier(player->getAttackCooldownMax() + 1.f);
+			this->shopOpen = false;
+		}
+	}
+	else
+	{
+		this->upgradeFirerateButton.setFillColor(sf::Color(50, 50, 50, 200));
+	}
+
 }
 
 void Game::update()
@@ -425,6 +604,7 @@ void Game::update()
 
 	this->updateGUI();
 	this->updateWorld();
+	this->updateWave();
 }
 
 void Game::renderGUI()
@@ -434,11 +614,27 @@ void Game::renderGUI()
 	// Player GUI
 	this->window->draw(this->playerHpBarBack);
 	this->window->draw(this->playerHpBar);
+
+	// Wave Number
+	this->window->draw(this->waveNumberText);
 }
 
 void Game::renderWorld()
 {
 	this->window->draw(this->worldBackground);
+}
+
+void Game::renderShop()
+{
+	// Render shop buttons
+	this->window->draw(this->upgradeDmgButton);
+	this->window->draw(this->upgradeFirerateButton);
+	this->window->draw(this->exitShop);
+
+	// Render shop Text
+	this->window->draw(this->shopText);
+	this->window->draw(this->upgradeDmgText);
+	this->window->draw(this->upgradeFirerateText);
 }
 
 void Game::render()
@@ -449,9 +645,10 @@ void Game::render()
 	// Draw World (background)
 	this->renderWorld();
 
-	// Draw everything to the window HERE.
+	// Draw player
 	this->player->render(*this->window);
-
+	
+	// Draw bullets
 	for (auto *bullet : this->bullets)
 	{
 		bullet->render(this->window);
@@ -463,7 +660,14 @@ void Game::render()
 		enemy->render(this->window);
 	}
 
+	// Render the GUI
 	this->renderGUI();
+
+	// Render the shop
+	if (this->shopOpen)
+	{
+		this->renderShop();
+	}
 
 	// Game over screen
 	if (this->player->getHp() <= 0)

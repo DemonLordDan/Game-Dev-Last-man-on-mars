@@ -1,3 +1,8 @@
+/*
+Title: Bullet Header
+Description: Creates all the required variables, functions, accessors and modifiers for the bullet class.
+Author: Andrew Morrison
+*/
 #pragma once
 
 #include<SFML/Graphics.hpp>

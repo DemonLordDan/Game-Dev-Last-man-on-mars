@@ -1,3 +1,8 @@
+/*
+Title: Player Class
+Description: Handles the initialization of player along with functions dedicated to accessing and manipulating the player.
+Author: Andrew Morrison
+*/
 #include "Player.h"
 
 /*
@@ -11,9 +16,12 @@ void Player::initVariables()
 
 	this->attackCooldownMax = 0.5f;
 	this->attackCooldown = attackCooldownMax;
+	this->cooldownMultiplier = 1.f;
 
 	this->hpMax = 10;
 	this->hp = hpMax;
+
+	this->damage = 10;
 }
 
 void Player::initTexture()
@@ -89,6 +97,21 @@ const int & Player::getHpMax() const
 	return this->hpMax;
 }
 
+const int& Player::getDamage() const
+{
+	return this->damage;
+}
+
+const int& Player::getAttackCooldown() const
+{
+	return this->attackCooldown;
+}
+
+const int& Player::getAttackCooldownMax() const
+{
+	return this->attackCooldownMax;
+}
+
 /*
 #################
 ### Modifiers ###
@@ -119,6 +142,16 @@ void Player::loseHp(const int value)
 	}
 }
 
+void Player::setDamage(const int dmg)
+{
+	this->damage = dmg;
+}
+
+void Player::setCooldownMultiplier(const int cooldown)
+{
+	this->cooldownMultiplier = this->cooldownMultiplier + cooldown;
+}
+
 /*
 #################
 ### Functions ###
@@ -144,7 +177,7 @@ void Player::updateAttack(float dt)
 {
 	if (this->attackCooldown < this->attackCooldownMax)
 	{
-		this->attackCooldown += (1.f * dt);
+		this->attackCooldown += (this->cooldownMultiplier * dt);
 	}
 }
 
