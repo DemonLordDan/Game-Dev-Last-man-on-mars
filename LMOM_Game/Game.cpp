@@ -172,7 +172,6 @@ void Game::prewarm() {
 */
 Game::Game()
 {
-	this->sMenu();
 	this->prewarm();
 	
 	
